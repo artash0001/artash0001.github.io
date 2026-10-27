@@ -207,7 +207,37 @@ input.rng:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; b
   .c-big b { font-size: 23px; }
   .base { margin: 6px 0 0; display: inline-block; }
 }
-@media print { .calc, .base-note, .base { display: none !important; } }
+
+/* demo hint */
+html { scroll-behavior: smooth; }
+.to-calc-wrap { margin: 18px 0 0; }
+.to-calc { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 12px 24px; border-radius: 999px; background: var(--olive); color: #fff; font-weight: 800; font-size: 18px; text-decoration: none; box-shadow: 0 6px 16px rgba(80,80,20,.22); }
+.to-calc span { display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+.rng-wrap { position: relative; }
+.c-hint { display: flex; align-items: center; gap: 10px; margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--rust-soft); color: var(--rust); font-weight: 800; font-size: 17px; line-height: 1.3; transition: opacity .35s ease, max-height .35s ease, margin .35s ease, padding .35s ease; max-height: 120px; overflow: hidden; }
+.c-hint .dot { flex: 0 0 12px; height: 12px; border-radius: 50%; background: var(--rust); animation: ping 1.6s ease-out infinite; }
+.c-hint.gone { opacity: 0; max-height: 0; margin: 0; padding-top: 0; padding-bottom: 0; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(183,89,25,.45); } 80%, 100% { box-shadow: 0 0 0 12px rgba(183,89,25,0); } }
+.c-hand { position: absolute; left: 0; top: 18px; width: 40px; height: 46px; pointer-events: none; opacity: 0; transition: opacity .3s ease; z-index: 3; }
+.c-hand .fing { fill: #fff; stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
+.c-hand .tap { fill: rgba(183,89,25,.28); animation: tap 1.3s ease-out infinite; transform-origin: 14px 8px; }
+@keyframes tap { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+.calc.demo-run .c-hand { opacity: 1; }
+.calc.demo-run #in-gbp::-webkit-slider-thumb, .calc.demo-pulse input.rng::-webkit-slider-thumb { animation: thumbpulse 1.8s ease-out infinite; }
+.calc.demo-run #in-gbp::-moz-range-thumb, .calc.demo-pulse input.rng::-moz-range-thumb { animation: thumbpulse 1.8s ease-out infinite; }
+@keyframes thumbpulse { 0% { box-shadow: 0 2px 6px rgba(0,0,0,.25), 0 0 0 0 rgba(116,120,35,.5); } 70%, 100% { box-shadow: 0 2px 6px rgba(0,0,0,.25), 0 0 0 14px rgba(116,120,35,0); } }
+.calc.demo-run .segbtn:not(.on), .calc.demo-pulse .segbtn:not(.on) { animation: btnglow 2.4s ease-in-out infinite; }
+@keyframes btnglow { 0%, 100% { box-shadow: 0 0 0 0 rgba(116,120,35,0); background: #fff; } 50% { box-shadow: 0 0 0 4px rgba(116,120,35,.18); background: #F6F6EA; } }
+.calc.demo-static .c-hand { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .to-calc span, .c-hint .dot, .c-hand .tap { animation: none !important; }
+  .calc .segbtn, .calc input.rng::-webkit-slider-thumb { animation: none !important; }
+  .c-hint { transition: none; }
+}
+
+@media print { .calc, .base-note, .base, .to-calc-wrap { display: none !important; } }
 
 @media print {
   @page { size: A4 portrait; margin: 14mm 14mm 14mm; }
@@ -268,6 +298,7 @@ input.rng:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; b
       <div class="cap-v">£325&nbsp;000</div>
       <div class="cap-s">все суммы дальше — в долларах США · отсчёт с дня, когда я приезжаю в Грузию</div>
     </div>
+    <p class="to-calc-wrap"><a class="to-calc" href="#calc">Посчитай сам <span aria-hidden="true">↓</span></a></p>
     <p class="print-only scen">Расчёт ниже — для варианта «живём вдвоём»: жизнь $1 486 в месяц.</p>
   </div>
   <figure class="hero-img wrap">
@@ -291,9 +322,13 @@ input.rng:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; b
         <div class="ctl-h"><span class="lbl">Сколько нас</span></div>
         <div class="segs"><button type="button" class="segbtn" data-g="life" data-v="two" aria-pressed="false">Живём вдвоём · $1 486/мес</button><button type="button" class="segbtn" data-g="life" data-v="one" aria-pressed="false">Живу один · $1 148/мес</button></div>
       </div>
+      <p class="c-hint" id="c-hint"><span class="dot"></span>Подвигай ползунки и нажимай кнопки — цифры пересчитаются</p>
       <div class="ctl">
         <div class="ctl-h"><label for="in-gbp">Стартовый капитал</label><output id="out-gbp" for="in-gbp"></output></div>
-        <input type="range" class="rng" id="in-gbp" min="250000" max="400000" step="5000" value="250000">
+        <div class="rng-wrap">
+          <input type="range" class="rng" id="in-gbp" min="250000" max="400000" step="5000" value="250000">
+          <svg id="c-hand" class="c-hand" viewBox="0 0 48 56" aria-hidden="true"><circle class="tap" cx="14" cy="8" r="9"></circle><path class="fing" d="M10 8a4 4 0 0 1 8 0v17l2-1.2V20a4 4 0 0 1 7.6-1.7 4 4 0 0 1 7.4 1.2 4 4 0 0 1 7 2.5V36c0 9-6 16-15 16h-2c-6 0-10-3-13-8L4.6 34.5a4 4 0 0 1 6-5.2L10 30z"></path></svg>
+        </div>
         <p class="ctl-n">курс 1 £ = $1,3314 (НБГ, 27.10.2026)</p>
       </div>
       <div class="ctl">
@@ -681,6 +716,73 @@ window.PLAN = {"s": {"two": {"t": {"life": "$1 486", "who": "вдвоём", "li
   });
   $('c-reset').addEventListener('click', function () { st = JSON.parse(JSON.stringify(BASE)); render(); });
   render();
+
+  /* ---------- Подсказка-демо: показывает, что ползунки двигаются ---------- */
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var demoKey = 'gbp', demoEl = $('in-' + demoKey), demoCtl = demoEl.closest('.ctl');
+  var hint = $('c-hint'), hand = $('c-hand');
+  var touched = false, raf = 0, timers = [];
+  window.PlanDemo = { state: 'idle' };
+  function placeHand() {
+    if (!hand) return;
+    var min = +demoEl.min, max = +demoEl.max, r = (st[demoKey] - min) / (max - min);
+    var x = demoEl.offsetLeft + 16 + r * (demoEl.offsetWidth - 32);
+    hand.style.transform = 'translate(' + (x - 14).toFixed(1) + 'px, 0)';
+  }
+  function stopDemo() {
+    if (touched) return;
+    touched = true;
+    cancelAnimationFrame(raf); timers.forEach(clearTimeout);
+    if (st[demoKey] !== BASE[demoKey]) { st[demoKey] = BASE[demoKey]; render(); }
+    root.classList.remove('demo-run', 'demo-pulse', 'demo-static');
+    if (hint) hint.classList.add('gone');
+    window.PlanDemo.state = 'stopped';
+  }
+  ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'wheel'].forEach(function (ev) {
+    root.addEventListener(ev, function (e) {
+      if (e.target.closest && e.target.closest('input, button')) stopDemo();
+    }, { capture: true, passive: true });
+  });
+  function ease(t) { return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function sweep(done) { // база → +£40k → база, ~2,6 с, значения по шагу ползунка
+    var base = BASE[demoKey], amp = 40000, step = +demoEl.step, T = 2600, t0 = performance.now();
+    function frame(now) {
+      if (touched) return;
+      var t = Math.min((now - t0) / T, 1), phase = t < .5 ? ease(t * 2) : ease((1 - t) * 2);
+      var v = base + Math.round(amp * phase / step) * step;
+      if (t >= 1) v = base;
+      if (v !== st[demoKey]) { st[demoKey] = v; render(); }
+      placeHand();
+      if (t < 1) raf = requestAnimationFrame(frame); else done();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function runDemo() {
+    if (touched) return;
+    window.PlanDemo.state = 'running';
+    root.classList.add('demo-run');
+    placeHand();
+    timers.push(setTimeout(function () {
+      sweep(function () {
+        timers.push(setTimeout(function () {
+          sweep(function () {
+            if (touched) return;
+            st[demoKey] = BASE[demoKey]; render();
+            root.classList.remove('demo-run'); root.classList.add('demo-pulse');
+            window.PlanDemo.state = 'done';
+          });
+        }, 1200));
+      });
+    }, 500));
+  }
+  if (reduce) { root.classList.add('demo-static'); window.PlanDemo.state = 'static'; placeHand(); }
+  else if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting && !touched) { io.disconnect(); runDemo(); } });
+    }, { threshold: 0.9 });
+    io.observe(demoCtl);
+  } else { root.classList.add('demo-pulse'); }
+  window.addEventListener('resize', placeHand);
 })();
 
 </script>
